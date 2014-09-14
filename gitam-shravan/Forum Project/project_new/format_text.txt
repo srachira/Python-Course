@@ -1,0 +1,1 @@
+{'forum2': {'stacks': ['kill', [5, 'hash function?', 'types of hashing?'], [2, 'hash table?']], 'hashing': [17, [8, 'what is hashing?', 'liner probing?'], [24, 'collisions are?']]}, 'forum1': {'datastr': [7, [6, 'types of datastr'], [21, 'stacks are?']], 'algorithm': [0, [7, 'what is an algorithm?'], [9, 'what is master theorem?']]}}

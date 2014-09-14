@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Agile Design Labs: </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="stylesheets/external/bootstrap.min.css" rel="stylesheet" media="screen">
+    </head>
+    <style type="text/css">
+        .helper-tip {
+            background-color: #ffff88;
+            border-bottom: 1px dotted black;
+        }
+    </style>
+    <body style="padding: 60px 0 140px 0;">
+        <div class="navbar navbar-fixed-top navbar-inverse">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="brand" href="#">Agile Design Labs</a>
+                    <ul class="nav">
+                        <li><a href="#">Sprint I</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <h3>Fundamentals - DRY: Overview</h3>
+            <p class="text-center"><img src="overview.jpg" width="550px;" height="413px;" title="Y u copy paste bug?"/></p>
+
+            <p>
+            Duplication is your worst enemy as a developer.
+            Developers in production environments understand that almost all software development
+            work involves maintaining, extending and enhancing previous work.
+            The presences of duplicates makes this much more hard and error-prone than it needs to be.
+            Duplication is not restricted to code &ndash; it in also seen frequently in CSS, database schemas,
+            and configuration information.
+            </p>
+            
+            <p>
+            In this boot camp, you will get to recognise duplication in its various forms
+            and figure out ways to refactor duplication.
+            The <strong>DRY principle</strong> (Don't Repeat Yourself) is an obvious yet invaluable piece of advice
+            that takes you a long way towards writing well-designed, simple and reliable code.
+            </p>
+            
+            <p><strong>Difficulty level:</strong> <code>Beginner</code></p>
+            
+            <strong>Things you will master in this boot camp:</strong>
+            <ul>
+                <li>Recognizing literal duplication</li>
+                <li>Refactoring magic constants</li>
+                <li>Utilizing the String library to refactor literal duplication</li>
+                <li>Recognizing common patterns of functional duplication</li>
+                <li>Refactoring duplicate code within a method/class</li>
+                <li>Refactoring duplicate code across classes</li>
+                <li>Recognizing & refactoring structural duplication</li>
+            </ul>
+            
+            <p>
+            <strong>Pre-requisites:</strong>
+            This boot camp can only be attempted in Python.
+            Usage of an IDE like Eclipse/IntelliJ is optional but recommended.
+            </p>
+            
+            <strong>This bootcamp is structured as follows:</strong>
+            <ul>
+                <li>3 levels of incremental problem solving</li>
+                <li>2 levels of refactoring existing code</li>
+                <li>2 levels of analysis of external GitHub code</li>
+            </ul>
+
+            <ul class="pager">
+                <li class="next"><a href="level-1.html">Get started &rsaquo;</a></li>
+            </ul>
+        </div>
+        
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="javascripts/external/bootstrap.min.js"></script>
+        <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?lang=java&skin=default"></script>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                $(".helper-tip").popover();
+            });
+        </script>
+    </body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html ng-app>
+    <head>
+        <title>Agile Design Labs: </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="stylesheets/external/bootstrap.min.css" rel="stylesheet" media="screen">
+    </head>
+    <style type="text/css">
+        .helper-tip {
+            background-color: #ffff88;
+            border-bottom: 1px dotted black;
+        }
+    </style>
+    <body style="padding: 60px 0 140px 0;">
+        <div class="navbar navbar-fixed-top navbar-inverse">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="brand" href="#">Agile Design Labs</a>
+                    <ul class="nav">
+                        <li><a href="#">Sprint I</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <h3>Fundamentals - DRY: Level 5</h3>
+            
+            <p>
+                You're done with generating one kind of report, only two more to go!
+                As usual you have bad help at hand &ndash;
+                somebody else has implemented SKU and SKU-Warehouse report generation.
+                Except that they used a lot of copy and paste.
+                Your task is to refactor it as best as you can, while making sure that none of the tests break.
+                
+            </p>
+            
+            <hr />
+            
+            <p><strong>Existing code</strong></p>
+            <pre class="prettyprint lang-python">class InventoryReportManager:
+    def __init__(self, warehouseSnapshotDao):
+        self.warehouseSnapshotDao = warehouseSnapshotDao
+
+    def _getWarehouseSnapshot(self, warehouseName, year, month):
+        return self.warehouseSnapshotDao.findOne((
+                self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "name", warehouseName),
+                self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "year", year),
+                self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "month", month)))
+
+    def _computeUnits(self, sku):
+        return sku.quantity
+
+    def _computeValue(self, sku):
+        return sku.quantity * sku.unitValue
+
+    def _computeReportItem(self, warehouseSnapshot, computeFunction):
+        reportItem = 0
+        for sku in warehouseSnapshot.skus:
+            reportItem += computeFunction(sku)
+        return reportItem
+
+    def generateWarehouseReport(self, warehouseName, year, month):
+        previousMonth = month - 1
+        previousYear = year
+        if previousMonth < 0:
+            previousYear -= 1
+            previousMonth += 12
+
+        currentWarehouseSnapshot = self._getWarehouseSnapshot(warehouseName,
+                year, month)
+        previousWarehouseSnapshot = self._getWarehouseSnapshot(warehouseName,
+                previousYear, previousMonth)
+
+        if currentWarehouseSnapshot == None or previousWarehouseSnapshot == None:
+            return None
+
+        warehouseReport = WarehouseReport()
+        warehouseReport.skus = len(currentWarehouseSnapshot.skus)
+        warehouseReport.units = self._computeReportItem(
+                currentWarehouseSnapshot, self._computeUnits)
+        warehouseReport.value = self._computeReportItem(
+                currentWarehouseSnapshot, self._computeValue)
+        
+        previousValue = self._computeReportItem(previousWarehouseSnapshot,
+                self._computeValue)
+        warehouseReport.changeInValue = warehouseReport.value - previousValue
+        return warehouseReport
+    
+    def generateSkuReport(self, skuName, year, month):
+        previousMonth = month - 1
+        previousYear = year
+        if previousMonth < 0:
+            previousYear -= 1
+            previousMonth += 12
+
+        currentWarehouseSnapshots = self.warehouseSnapshotDao.find((
+                self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "year", year),
+                self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "month", month)))
+        previousWarehouseSnapshots = self.warehouseSnapshotDao.find((
+                self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "year", previousYear),
+                self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "month", previousMonth)))
+
+        skuReport = Report()
+        for warehouseSnapshot in currentWarehouseSnapshots:
+            for sku in warehouseSnapshot.skus:
+                if sku.name == skuName:
+                    skuReport.units += sku.quantity
+                    skuReport.value += sku.quantity * sku.unitValue
+        previousValue = 0
+        for warehouseSnapshot in previousWarehouseSnapshots:
+            for sku in warehouseSnapshot.skus:
+                if sku.name == skuName:
+                    previousValue += sku.quantity * sku.unitValue
+        skuReport.changeInValue= skuReport.value - previousValue
+        return skuReport
+        
+    def generateSkuWarehouseReport(self, skuName, warehouseName, year, month):
+        previousMonth = month - 1
+        previousYear = year
+        if previousMonth < 0:
+            previousYear -= 1
+            previousMonth += 12
+
+        currentWarehouseSnapshot = self._getWarehouseSnapshot(warehouseName,
+                year, month)
+        previousWarehouseSnapshot = self._getWarehouseSnapshot(warehouseName,
+                previousYear, previousMonth)
+
+        if currentWarehouseSnapshot == None or previousWarehouseSnapshot == None:
+            return None
+        
+        skuReport = Report()
+        for sku in currentWarehouseSnapshot.skus:
+            if sku.name == skuName:
+                skuReport.units += sku.quantity
+                skuReport.value += sku.quantity * sku.unitValue
+        previousValue = 0
+        for sku in previousWarehouseSnapshot.skus:
+            if sku.name == skuName:
+                previousValue += sku.quantity * sku.unitValue
+        skuReport.changeInValue= skuReport.value - previousValue
+        return skuReport</pre>
+            
+            <p>
+
+            <ul class="pager">
+                <li class="previous"><a href="level-4-editorial.html">&lsaquo; Editorial (Level 4)</a></li>
+                <li class="next"><a href="level-5-editorial.html">Editorial &rsaquo;</a></li>
+            </ul>
+        </div>
+        
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="javascripts/external/bootstrap.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.6/angular.min.js"></script>
+        <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?lang=python&skin=default"></script>
+        <script type="text/javascript">
+            function TimerController($scope, $timeout) {
+                $scope.minutes = 10;
+                $scope.seconds = 0;
+                $scope.formatToTwoDigits = function(number) {
+                    return number < 10 ? "0" + number: number;
+                }
+                var update = function() {
+                    $scope.seconds--;
+                    if ($scope.seconds < 0) {
+                        $scope.seconds += 60;
+                        $scope.minutes--;
+                    }
+                    if ($scope.minutes > 0 || $scope.seconds > 0) {
+                        $timeout(update, 1000);
+                    }
+                }
+                $timeout(update, 1000);
+            }
+        </script>
+    </body>
+</html>

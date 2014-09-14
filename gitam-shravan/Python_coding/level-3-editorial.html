@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html ng-app>
+    <head>
+        <title>Agile Design Labs: </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="stylesheets/external/bootstrap.min.css" rel="stylesheet" media="screen">
+    </head>
+    <style type="text/css">
+        .helper-tip {
+            background-color: #ffff88;
+            border-bottom: 1px dotted black;
+        }
+    </style>
+    <body style="padding: 60px 0 140px 0;">
+        <div class="navbar navbar-fixed-top navbar-inverse">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="brand" href="#">Agile Design Labs</a>
+                    <ul class="nav">
+                        <li><a href="#">Sprint I</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <h3>Fundamentals - DRY: Level 3 Editorial</h3>
+            <p>
+            In our usual style, let's write out the one-liners first to analyze all the duplication that's going on.
+            </p>
+            <pre class="prettyprint lang-python">    def generateErroneousReportTitle(self):
+        return '''&lt;h3 class="text-error">Error generating your report!''' + \
+            self.TITLE_CLOSE_TAG
+    
+    def generateReportLine(self, description, value):
+        return "&lt;strong>" + description + ":&lt;/strong> " + value</pre>
+
+            <ul>
+                <li>
+                    We're forced to have a literal <code>h3</code> in the open tag since <code>TITLE_OPEN_TAG</code>
+                    does not have <code>class="text-error"</code> 
+                </li>
+                <li>
+                    The <code>strong</code> literal is duplicated in the open and close tags when generating a report line
+                </li>
+                <li>
+                    The general tag structure is repeated between the <code>strong</code> and <code>h3</code> tags
+                </li>
+                <li>
+                    There's a <code>:</code> that occurs in the report line as well as the report title
+                </li>
+            </ul>
+
+            <p>
+            To get rid of this, let's abstract HTML tags at a higher level.
+            We can represent HTML tags as a pair of optional components between <code>&lt;</code> and <code>></code>.
+            This addresses the first three instances of duplication observed above.
+            </p>
+            
+            <ul>
+                <li>
+                    A simple open tag like <code>&lt;strong></code> has
+                    <code>strong</code> as the first component and no second component
+                </li>
+                
+                <li>
+                    A complex open tag like <code>&lt;h3 class="text-error"></code> has
+                    <code>h3</code> as the first component and
+                    <code>&nbsp;class="text-error"</code> as the second component
+                </li>
+                
+                <li>
+                    A close tag like <code>&lt;/strong></code> has
+                    <code>/</code> as the first component and
+                    <code>strong</code> as the second component
+                </li>
+            </ul>
+            
+            <pre class="prettyprint lang-python">    TAG_FORMAT = "<{0}{1}>"
+    TITLE_TAG = "h3"
+    DESCRIPTION_TAG = "strong"
+    
+    def _openTag(self, tagName, tagAttributes=""):
+        return self.TAG_FORMAT.format(tagName, tagAttributes)
+    
+    def _closeTag(self, tagName):
+        return self.TAG_FORMAT.format("/", tagName)</pre>
+            
+            <p>
+            When we think some more about the repetition of the <code>:</code>,
+            it is more co-incidence than structural or functional duplication.
+            Trying to refactor in this case will be counter-productive since there is no
+            <strong>real duplication</strong> to begin with.
+            </p>
+            
+            <p>
+            With the foundation in place, we can now update code in other places to use these methods.
+            At the end of it, we have a nice duplicate-free solution!
+            You can see the methods that are modified below.
+            </p>
+            
+            <pre class="prettyprint lang-python">    def _generateReportTitle(self, titleContents):
+        return self._openTag(self.TITLE_TAG) + titleContents + \
+            self._closeTag(self.TITLE_TAG)
+
+    def generateErroneousReportTitle(self):
+        return self._openTag(self.TITLE_TAG, ''' class="text-error"''') + \
+            "Error generating your report!" + self._closeTag(self.TITLE_TAG)
+    
+    def generateReportLine(self, description, value):
+        return self._openTag(self.DESCRIPTION_TAG) + description + ":" + \
+            self._closeTag(self.DESCRIPTION_TAG) + " " + value</pre>
+            <hr />
+
+            <ul class="pager">
+                <li class="previous"><a href="level-3.html">&lsaquo; Level 3</a></li>
+                <li class="next"><a href="level-4.html">Level 4 &rsaquo;</a></li>
+            </ul>
+        </div>
+        
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="javascripts/external/bootstrap.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.6/angular.min.js"></script>
+        <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?lang=python&skin=default"></script>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                $(".helper-tip").popover();
+            });
+        </script>
+    </body>
+</html>

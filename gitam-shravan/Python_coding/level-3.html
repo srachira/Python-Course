@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html ng-app>
+    <head>
+        <title>Agile Design Labs: </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="stylesheets/external/bootstrap.min.css" rel="stylesheet" media="screen">
+    </head>
+    <style type="text/css">
+        .helper-tip {
+            background-color: #ffff88;
+            border-bottom: 1px dotted black;
+        }
+    </style>
+    <body style="padding: 60px 0 140px 0;">
+        <div class="navbar navbar-fixed-top navbar-inverse">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="brand" href="#">Agile Design Labs</a>
+                    <ul class="nav">
+                        <li><a href="#">Sprint I</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <h3>Fundamentals - DRY: Level 3</h3>
+            
+            <p>
+                Now that we've finished with the formatting of report titles,
+                we only have a few minor things to finish up on the formatting side of the inventory reporting system.
+                After that, we can move on to the juicier task of actually creating reports.
+                Use cases:
+            </p>
+            <ul>
+                <li>
+                There may be cases where there is an error generating the report.
+                We want to return a special title in those cases:
+                <code>&lt;h3 class="text-error">Error generating your report!&lt;/h3></code>
+                </li>
+                <li>
+                We want to format individual lines of the report.
+                Each line consists of a description and value. If the description is
+                <code>Quantity</code> and value is <code>10</code>, the formatted line would be
+                <code>&lt;strong>Quantity:&lt;/strong> 10</code> 
+                </li>
+                <li>
+                Since we're using the <code>:</code> in report lines, we want to change the
+                titles to use a <code>-</code> instead of a <code>:</code>.
+                So, <code>&lt;h3>Warehouse: Agra&lt;/h3></code> becomes <code>&lt;h3>Warehouse - Agra&lt;/h3></code>.
+                The other 2 types of titles will also change similarly.
+            </ul>
+            <hr />
+            
+            <p><strong>Stub code</strong></p>
+            <pre class="prettyprint lang-python">class FormattedTextGenerator:
+    def generateWarehouseReportTitle(self, warehouseName):
+    def generateSkuReportTitle(self, skuName):
+    def generateSkuWarehouseReportTitle(self, skuName, warehouseName):
+    def generateErroneousReportTitle(self):
+    def generateReportLine(self, description, value):</pre>
+            
+            <p>
+
+            <ul class="pager">
+                <li class="previous"><a href="github-analysis.html">&lsaquo; GitHub Analysis</a></li>
+                <li class="next"><a href="level-3-editorial.html">Editorial &rsaquo;</a></li>
+            </ul>
+        </div>
+        
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="javascripts/external/bootstrap.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.6/angular.min.js"></script>
+        <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?lang=python&skin=default"></script>
+        <script type="text/javascript">
+            function TimerController($scope, $timeout) {
+                $scope.minutes = 10;
+                $scope.seconds = 0;
+                $scope.formatToTwoDigits = function(number) {
+                    return number < 10 ? "0" + number: number;
+                }
+                var update = function() {
+                    $scope.seconds--;
+                    if ($scope.seconds < 0) {
+                        $scope.seconds += 60;
+                        $scope.minutes--;
+                    }
+                    if ($scope.minutes > 0 || $scope.seconds > 0) {
+                        $timeout(update, 1000);
+                    }
+                }
+                $timeout(update, 1000);
+            }
+        </script>
+    </body>
+</html>

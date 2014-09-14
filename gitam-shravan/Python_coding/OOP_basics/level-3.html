@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html ng-app>
+    <head>
+        <title>Agile Design Labs: </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="stylesheets/external/bootstrap.min.css" rel="stylesheet" media="screen">
+    </head>
+    <style type="text/css">
+        .helper-tip {
+            background-color: #ffff88;
+            border-bottom: 1px dotted black;
+        }
+    </style>
+    <body style="padding: 60px 0 140px 0;">
+        <div class="navbar navbar-fixed-top navbar-inverse">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="brand" href="#">Agile Design Labs</a>
+                    <ul class="nav">
+                        <li><a href="#">Sprint I</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <h3>OOP - Abstracting & Naming Concepts: Level 3</h3>
+            <p>
+	            It is mid 2000s now, through constant innovation and your disciplined software development,
+	            the company is now firmly established as the topmost telecom service provider. They now plan
+	            to introduce packs(e.g. std pack, data pack). These packs could be of three types:
+	            <ul>
+	                <li>Free data/minutes/sms upto a certain limit</li>
+	                <li>Reduced data/minutes/sms rates</li>
+	                <li>Free data/minutes/sms upto a certain limit and reduced rates post free usage limit</li>
+	            </ul>
+            </p>
+            <hr />
+
+            <p><strong>Stub code</strong></p>
+            <pre class="prettyprint lang-python">class TelecomServiceProvider:
+	def setDataPack(self, msisdn, packName, totalFreeData, planCost, chargesPostLimitPerMB):
+	   #set data pack characteristics
+
+	def setVoicePack(self, msisdn, packName, localFreeMinutes, stdFreeMinutes,
+	                    localCallRatePostFreeUsageLimit, stdCallRatePostFreeUsageLimit):
+	    #set voice call pack characteristics
+
+	def setSMSPack(self, msisdn, packName, localFreeSMS, stdFreeSMS,
+	                    localSMSRatePostFreeUsageLimit, stdSMSRatePostFreeUsageLimit):
+	    #set sms pack characteristics
+</pre>
+
+            <ul class="pager">
+                <li class="previous"><a href="level-2-editorial.html">&lsaquo; Previous (Editorial)</a></li>
+                <li class="next"><a href="level-3-editorial.html">Next (Editorial) &rsaquo;</a></li>
+            </ul>
+        </div>
+
+
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="javascripts/external/bootstrap.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.6/angular.min.js"></script>
+        <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?lang=python&skin=default"></script>
+        <script type="text/javascript">
+            function TimerController($scope, $timeout) {
+                $scope.minutes = 60       ;
+                $scope.seconds = 0;
+                $scope.formatToTwoDigits = function(number) {
+                    return number < 10 ? "0" + number: number;
+                }
+                var update = function() {
+                    $scope.seconds--;
+                    if ($scope.seconds < 0) {
+                        $scope.seconds += 60;
+                        $scope.minutes--;
+                    }
+                    if ($scope.minutes > 0 || $scope.seconds > 0) {
+                        $timeout(update, 1000);
+                    }
+                }
+                $timeout(update, 1000);
+            }
+        </script>
+    </body>
+</html>

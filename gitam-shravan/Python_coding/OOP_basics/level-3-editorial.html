@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html ng-app>
+    <head>
+        <title>Agile Design Labs: </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="stylesheets/external/bootstrap.min.css" rel="stylesheet" media="screen">
+    </head>
+    <style type="text/css">
+        .helper-tip {
+            background-color: #ffff88;
+            border-bottom: 1px dotted black;
+        }
+    </style>
+    <body style="padding: 60px 0 140px 0;">
+        <div class="navbar navbar-fixed-top navbar-inverse">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="brand" href="#">Agile Design Labs</a>
+                    <ul class="nav">
+                        <li><a href="#">Sprint I</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <h3>OOP - Abstracting & Naming Concepts: Level 3 Editorial</h3>
+            <p>
+	            Data Packs are introduced. You are expected to modify the system for data packs. Consider the following:
+	            <ol>
+	               <li>Do packs belong to User class? No</li>
+	               <li>Are packs part of Plan? Maybe!</li>
+	               <li>Observe that calculating call cost etc. will require information sharing between packs and Plan!</li>
+	            </ol>
+	            
+	            Considering the above, one solution can be to have the three kind of packs as part of Plan class:
+	            <pre class="prettyprint lang-python">class Plan:
+    
+    SECS_PER_MINUTE = 60
+    MIN_DATA = 10
+     
+    def __init__(self, localCallRatePerMinute, stdCallRatePerMinute,
+            localSMSRate, stdSMSRate, dataRatePer10KB):
+        self.localCallRatePerMinute = localCallRatePerMinute
+        self.stdCallRatePerMinute = stdCallRatePerMinute
+        self.localSMSRate = localSMSRate
+        self.stdSMSRate = stdSMSRate
+        self.dataRatePer10KB = dataRatePer10KB
+        self.voiceCallPack = None
+        self.smsPack = None
+        self.dataPack = None
+    
+    def calculateCallCost(self, durationInSecs, distanceType):
+        callCost = 0
+        defaultPlanCallRate = self.__getRateByDistanceType(distanceType, 
+                self.localCallRatePerMinute, self.stdCallRatePerMinute);
+        callMinutes = (durationInSecs + self.SECS_PER_MINUTE-1)// self.SECS_PER_MINUTE;
+        
+        if self.voiceCallPack is None :
+            callCost = callMinutes * defaultPlanCallRate;
+        else:
+            callCost = self.voiceCallPack.calculateCallCost(callMinutes, 
+                    distanceType, defaultPlanCallRate);
+        return callCost
+    
+    def calculateSMSCost(self, distanceType):
+        return self.__getRateByDistanceType(distanceType, self.localSMSRate, self.stdSMSRate)
+    
+    def createPlan(planName):
+        if planName == 'GENERAL_PLAN':
+            return Plan(1, 1, 1, 0.1)
+        elif planName == "STD_PLAN":
+            return Plan(1.2, 0.5, 1.25, 0.75, 0.1)
+        elif planName == "LOCAL_PLAN":
+            return Plan(0.5, 1.2, 0.75, 1.25, 0.1)    
+        
+    def calculateDataCost(self, kiloBytes):
+        downloadedData = (kiloBytes + self.MIN_DATA - 1)//self.MIN_DATA;
+        return downloadedData * self.dataRatePer10KB;
+        
+    def __getRateByDistanceType(self, distanceType, local, std):
+        return local if (distanceType == DistanceType().LOCAL) else std</pre>
+    </br>
+    Pack classes can be defined as below. A more elegant solution will make use of Chain of Responsibility pattern (more on 
+    patterns later). Notice that the pack specific calculations are done in the Pack class.</br>
+    <pre class="prettyprint lang-python">class VoiceCallPack:
+    
+    def __init__(self, localUsageLimitInMinutes, stdUsageLimitInMinutes,
+                 localCallRatePostUsageLimit, stdCallRatePostUsageLimit):
+            self.localUsageLimitInMinutes = localUsageLimitInMinutes
+            self.stdUsageLimitInMinutes = stdUsageLimitInMinutes
+            self.localCallRatePostUsageLimit = localCallRatePostUsageLimit
+            self.stdCallRatePostUsageLimit = stdCallRatePostUsageLimit
+            self.localFreeUsage = 0
+            self.stdFreeUsage = 0
+
+    def calculateCallCost(self, callMinutes, distanceType, defaultPlanRate):
+        callCost = 0
+        availableFreeMinutes = self.__getAvailableFreeMinutes(distanceType) 
+        
+        if(callMinutes > availableFreeMinutes):
+            callRate = self.__getRateByDistanceType(distanceType, self.localCallRatePostUsageLimit,
+                    self.stdCallRatePostUsageLimit);
+            if( callRate <= 0):
+                callRate = defaultPlanRate;
+            
+            callCost = callRate * (callMinutes - availableFreeMinutes)
+            self.__updateFreeUsage(distanceType, availableFreeMinutes)
+        else:
+            callCost = 0;
+            self.__updateFreeUsage(distanceType, callMinutes);
+        return callCost
+    
+    def __getAvailableFreeMinutes(self, distanceType):
+        if(distanceType == DistanceType.LOCAL):
+            return self.localUsageLimitInMinutes - self.localFreeUsage
+        else: 
+            return self.stdUsageLimitInMinutes - self.stdFreeUsage
+    
+    def __getRateByDistanceType (self, type, local, std):
+        return local if (type == DistanceType.LOCAL) else std
+
+    def __updateFreeUsage(self, distanceType, freeCallMinutes):
+        if(distanceType == DistanceType.LOCAL):
+            self.localFreeUsage += freeCallMinutes
+        elif (distanceType == DistanceType.STD):
+            self.stdFreeUsage += freeCallMinutes</pre>    
+            <ul class="pager">
+                <li class="previous"><a href="level-3.html">&lsaquo; Previous (Level 3)</a></li>
+                <!--  <li class="next"><a href="level-2-editorial.html">Next (Level 2) &rsaquo;</a></li>  -->
+            </ul>
+        </div>
+        
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="javascripts/external/bootstrap.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.6/angular.min.js"></script>
+        <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?lang=python&skin=default"></script>
+    </body>
+</html>

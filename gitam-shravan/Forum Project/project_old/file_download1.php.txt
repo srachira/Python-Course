@@ -1,0 +1,225 @@
+__author__ = 'Ravi'
+
+import socket
+
+class mySocket:
+    def __init__(self,sock=None):
+        if sock == None:
+            self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM,0)
+        else:
+            self.sock = sock
+
+    def bind(self,hpTuple):
+        self.sock.bind(hpTuple)
+
+    def listen(self):
+        self.sock.listen(5)
+
+    def close(self):
+        self.sock.close()
+
+
+
+class FORUMS:
+    def __init__(self):
+        self.forums=[]
+        self.forum_comments={}
+    def createforum(self,name):
+        self.forums.append(name)
+    def getforums(self):
+        forum=self.forums
+
+        return forum
+    def postcomments(self,name,msg):
+        try:
+            index=self.forums.index(name)
+        except ValueError:
+            return 'v'
+        try:
+            self.forum_comments[index]=self.forum_comments[index].append(msg)
+            return 'y'
+        except KeyError:
+            self.forum_comments[index]=[msg]
+            return 'y'
+
+    def getcomments(self,name):
+        try:
+            index=self.forums.index(name)
+        except ValueError:
+            return 'v'
+        try:
+            return self.forum_comments[index]
+        except KeyError:
+            return 'k'
+
+class JSON:
+    def __init__(self,in_dic):
+        self.json_dic=in_dic
+        self.cmd=""
+        self.name=""
+        self.cmnt=""
+        self.json_ser={}
+    def deserialize(self):
+        i=0
+        length=len(self.json_dic)
+        cmd=""
+        name=""
+        cmnt=""
+        while i<length:
+            if self.json_dic[i]=="'" and self.json_dic[i+1]=="c" and self.json_dic[i+2]=="o" and self.json_dic[i+3]=="m" and self.json_dic[i+4]=="m" and self.json_dic[i+5]=="a" and self.json_dic[i+6]=="n" and self.json_dic[i+7]=="d" and self.json_dic[i+8]=="'" and self.json_dic[i+9]==":":
+                i=i+10
+                while self.json_dic[i]!="'":
+                    i+=1
+                i+=1
+                #print self.json_dic[i]
+                while self.json_dic[i]!="'":
+                    cmd+=self.json_dic[i]
+                    i+=1
+            if self.json_dic[i]=="'" and self.json_dic[i+1]=="n" and self.json_dic[i+2]=="a" and self.json_dic[i+3]=="m" and self.json_dic[i+4]=="e" and self.json_dic[i+5]=="'" and self.json_dic[i+6]==":":
+                i=i+7
+                while self.json_dic[i]!="'":
+                    i+=1
+                i+=1
+                while self.json_dic[i]!="'":
+                    name+=self.json_dic[i]
+                    i+=1
+            if self.json_dic[i]=="'" and self.json_dic[i+1]=="c" and self.json_dic[i+2]=="o" and self.json_dic[i+3]=="m" and self.json_dic[i+4]=="m" and self.json_dic[i+5]=="e" and self.json_dic[i+6]=="n" and self.json_dic[i+7]=="t" and self.json_dic[i+8]=="'" and self.json_dic[i+9]==":":
+                i=i+10
+                while self.json_dic[i]!="'":
+                    i+=1
+                i+=1
+                while self.json_dic[i]!="'":
+                    cmnt+=self.json_dic[i]
+                    i+=1
+            else:
+                i+=1
+        self.json_ser["command"]=cmd
+        self.json_ser["name"]=name
+        self.json_ser["comment"]=cmnt
+class serializer:
+    def __init__(self,msg,result):
+        self.msg=msg
+        self.result=result
+        self.j={}
+    def serialize(self):
+        self.j["message"]=self.msg
+        self.j["result"]=self.result
+        json_data=str(self.j)
+        data_len=str(len(json_data))
+        while len(data_len)<4:
+            data_len='0'+data_len
+
+
+        return str(data_len+json_data)
+
+
+
+def main():
+    print 'Server Started Successfully'
+
+    forums=[]
+    comments={}
+    while True:
+        s = mySocket()
+        s.bind(('localhost',7893))
+        s.listen()
+        f=FORUMS()
+        conn, addr = s.sock.accept()
+        print 'Connected to a  client with  Address:',addr
+        while True:
+            length=int(conn.recv(4))
+            msg = conn.recv(length)
+            print "Message received"
+            ob=JSON(msg)
+            ob.deserialize()
+            #print 'Received from Client:',msg
+            if ob.json_ser["command"] == 'bye':
+                break
+            else:
+                #print ob.json_ser["command"],":command"
+                if ob.json_ser["command"]=="CREATE FORUM":
+                    if ob.json_ser["name"]=="":
+                        res_msg="No name given"
+                        res=""
+                    elif ob.json_ser["name"] in forums:
+                        res_msg="Forum already exists"
+                        res=""
+                    else:
+                        forums.append(ob.json_ser["name"])
+                        res_msg="Forum successfully created"
+                        res=""
+
+                    ob1=serializer(res_msg,res)
+                    conn.sendall(ob1.serialize())
+
+
+                elif ob.json_ser["command"]=="GET FORUMS":
+                    #print "get forums"
+
+                    if forums!=[]:
+                        res_msg="These are the forums present"
+                        res=forums
+                    else:
+                        res_msg="No forums created yet!!!"
+                        res=""
+
+                    ob1=serializer(res_msg,res)
+                    conn.sendall(ob1.serialize())
+                    #print "data sent"
+                elif ob.json_ser["command"]=="GET COMMENTS":
+                    if ob.json_ser["name"]=="":
+                        res_msg="No name given"
+                        res=""
+                    else:
+
+                        try:
+                            res=comments[ob.json_ser["name"]]
+                            res_msg="These are the comments in the forum"
+                        except KeyError:
+                            if ob.json_ser["name"] in forums:
+                                res_msg="No comments in the forum"
+                            else:
+                                res_msg="No such forum"
+                            res=""
+
+
+                    ob1=serializer(res_msg,res)
+                    conn.sendall(ob1.serialize())
+                elif ob.json_ser["command"]=="POST COMMENT":
+                    if ob.json_ser["name"]=="":
+                        res_msg="No name given"
+                        res=""
+                    elif ob.json_ser["comment"]=="":
+                        res_msg="No message given to post"
+                        res=""
+                    else:
+                        if ob.json_ser["name"] not in forums:
+                            res_msg="These is no forum with that name"
+                            res=""
+                        else:
+                            try:
+                                comments[ob.json_ser["name"]].append(ob.json_ser["comment"])
+                            except KeyError:
+                                comments[ob.json_ser["name"]]=[ob.json_ser["comment"]]
+                            res_msg="Comment posted successfully"
+                            res=""
+                    ob1=serializer(res_msg,res)
+                    conn.sendall(ob1.serialize())
+
+                else:
+                    res_msg="Invalid option"
+                    res=""
+                    ob1=serializer(res_msg,res)
+                    conn.sendall(ob1.serialize())
+
+        conn.sendall("Thanks for using this Service")
+        conn.close()
+    s.close()
+
+if __name__== '__main__':
+    main()
+
+
+
+
+

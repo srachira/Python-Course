@@ -1,0 +1,130 @@
+
+import socket
+class JSON:
+    def __init__(self,command,name,comment):
+        self.command=command
+        self.name=name
+        self.comment=comment
+        self.j={"command":"","name":"","comment":""}
+    def create_json(self):
+
+        self.j["command"]=self.command
+        self.j["name"]=self.name
+        self.j["comment"]=self.comment
+        json_data=str(self.j)
+        data_len=str(len(json_data))
+        if len(json_data)>9999:
+            return -1
+        while len(data_len)<4:
+            data_len='0'+data_len
+        return str(data_len+json_data)
+
+class mySocket:
+    def __init__(self,sock=None):
+        if sock == None:
+            self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM,0)
+        else:
+            self.sock = sock
+    def connect(self,hpTuple):
+        self.sock.connect(hpTuple)
+    def sendall(self,msg):
+        self.sock.sendall(msg)
+    def recv(self,max):
+        return self.sock.recv(max)
+
+class deserializer:
+    def __init__(self,data):
+        self.json_dic=data
+    def deserialize(self):
+        length=len(self.json_dic)
+        res=""
+        msg=""
+        i=0
+        while i<length:
+            if self.json_dic[i]=="'" and self.json_dic[i+1]=="m" and self.json_dic[i+2]=="e" and self.json_dic[i+3]=="s" and self.json_dic[i+4]=="s" and self.json_dic[i+5]=="a" and self.json_dic[i+6]=="g" and self.json_dic[i+7]=="e" and self.json_dic[i+8]=="'" and self.json_dic[i+9]==":":
+                i=i+10
+                while self.json_dic[i]!="'":
+                    i+=1
+                i+=1
+                while self.json_dic[i]!="'":
+                    msg+=self.json_dic[i]
+                    i+=1
+            elif self.json_dic[i]=="'" and self.json_dic[i+1]=="r" and self.json_dic[i+2]=="e" and self.json_dic[i+3]=="s" and self.json_dic[i+4]=="u" and self.json_dic[i+5]=="l" and self.json_dic[i+6]=="t" and self.json_dic[i+7]=="'" and self.json_dic[i+8]==":":
+                i=i+9
+                while self.json_dic[i]!="'" and self.json_dic[i]!='[':
+                    i+=1
+                if self.json_dic[i]=="'":
+                    i+=1
+                    while self.json_dic[i]!="'":
+                        res+=self.json_dic[i]
+                        i+=1
+                else:
+                    while self.json_dic[i]!="]":
+                        if self.json_dic[i]=="'":
+                            i+=1
+                            while self.json_dic[i]!="'":
+                                res+=self.json_dic[i]
+                                i+=1
+
+                            res+="\n"
+                            i+=1
+                        else:
+                            i+=1
+
+
+            else:
+                i+=1
+        print msg
+        if res!="":
+            print res
+
+def main():
+    c = mySocket()
+    c.connect(('localhost',7893))
+    msg = ''
+    while True:
+        print "Your messages can be of the form"
+        print "CREATE FORUM\nGET FORUMS\nGET COMMENTS\nPOST COMMENT\nbye(to quit)"
+        msg = raw_input('Enter message:')
+        if msg=="CREATE FORUM":
+            name=raw_input('Enter forum name:')
+            cmnt=""
+
+        elif msg=="GET FORUMS":
+            name=""
+            cmnt=""
+            ob=JSON(msg,name,cmnt)
+            c.sendall(ob.create_json())
+        elif msg=="GET COMMENTS":
+            name=raw_input("Enter forum name:")
+            cmnt=""
+            ob=JSON(msg,name,cmnt)
+            c.sendall(ob.create_json())
+        elif msg=="POST COMMENT":
+            name=raw_input("Enter forum name:")
+            cmnt=raw_input("Enter the comment:")
+            ob=JSON(msg,name,cmnt)
+            c.sendall(ob.create_json())
+        elif msg=="bye":
+            print "Thanks for using"
+            break
+        else:
+            print "Invalid option"
+            continue
+        ob=JSON(msg,name,cmnt)
+        res=ob.create_json()
+        if res==-1:
+            print "Data of this size is not allowed"
+            continue
+        else:
+            c.sendall(res)
+        length=int(c.recv(4))
+        rec_buf=c.recv(length)
+        ob=deserializer(rec_buf)
+        ob.deserialize()
+
+
+    c.sock.close()
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html ng-app>
+    <head>
+        <title>Agile Design Labs: </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="stylesheets/external/bootstrap.min.css" rel="stylesheet" media="screen">
+    </head>
+    <style type="text/css">
+        .helper-tip {
+            background-color: #ffff88;
+            border-bottom: 1px dotted black;
+        }
+    </style>
+    <body style="padding: 60px 0 140px 0;">
+        <div class="navbar navbar-fixed-top navbar-inverse">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="brand" href="#">Agile Design Labs</a>
+                    <ul class="nav">
+                        <li><a href="#">Sprint I</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <h3>Fundamentals - DRY: Level 1 Editorial</h3>
+            <p>
+            Despite being a simple task, formatting the warehouse report title brings up an interesting case of duplication.
+            The easiest solution is shown below. 
+            </p>
+            <pre class="prettyprint lang-python">return "&lt;h3>Warehouse: " + warehouseName + "&lt;/h3>"</pre>
+
+            <p>
+            Although the two string literals <code>&lt;h3>Warehouse: </code> and <code>&lt;/h3></code>are not identical,
+            both of them contain <code>&lt;h3></code> (the second literal modifies it with a <code>/</code>).
+            The similarity in the literals is not a coincidence &ndash;
+            the two literals are similar because they both represent HTML tags and
+            all HTML tags start with a <code>&lt;</code>, end with a <code>></code> and
+            contain the name of the tag somewhere in between.
+            </p>
+
+            <p>
+            Now that we've understood the underlying reasons for the structural similarity of the two literals,
+            we can easily abstract out the duplication. While this may seem like overkill, it still eases maintenance.
+            For example, changing the title tag from <code>h3</code> to <code>h4</code> is now a single change.
+            More importantly, it gets us into a 4-step coding style that will serve us well as the tasks get
+            larger and more complex.
+            </p>
+            <ul>
+                <li>Solve a task in the easiest way possible</li>
+                <li>Look for and recognize duplication</li>
+                <li>Understand the cause</li>
+                <li>Refactor to remove duplication</li>
+            </ul>
+            
+            <pre class="prettyprint lang-python">class FormattedTextGenerator:
+    TITLE_TAG_FORMAT = "<{0}h3>"
+    TITLE_OPEN_TAG = TITLE_TAG_FORMAT.format("")
+    TITLE_CLOSE_TAG = TITLE_TAG_FORMAT.format("/")
+    
+    def formatWarehouseReportTitle(self, warehouseName):
+        return self.TITLE_OPEN_TAG + "Warehouse: " + warehouseName + \
+            self.TITLE_CLOSE_TAG</pre>
+            <hr />
+
+            <ul class="pager">
+                <li class="previous"><a href="level-1.html">&lsaquo; Level 1</a></li>
+                <li class="next"><a href="level-2.html">Level 2 &rsaquo;</a></li>
+            </ul>
+        </div>
+        
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="javascripts/external/bootstrap.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.6/angular.min.js"></script>
+        <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?lang=python&skin=default"></script>
+    </body>
+</html>

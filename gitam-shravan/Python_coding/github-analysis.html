@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html ng-app>
+    <head>
+        <title>Agile Design Labs: </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="stylesheets/external/bootstrap.min.css" rel="stylesheet" media="screen">
+    </head>
+    <style type="text/css">
+        .helper-tip {
+            background-color: #ffff88;
+            border-bottom: 1px dotted black;
+        }
+    </style>
+    <body style="padding: 60px 0 140px 0;">
+        <div class="navbar navbar-fixed-top navbar-inverse">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="brand" href="#">Agile Design Labs</a>
+                    <ul class="nav">
+                        <li><a href="#">Sprint I</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <h3>Fundamentals - DRY: GitHub Analysis</h3>
+            <p>
+            String duplication commonly occurs when your code is interacting with information that is coming from a different system.
+            Parsing configuration from a file, reading parameters from HTML forms and sending out status/notification messages
+            are some common use cases that deal with string literals.
+            </p>
+            
+            <p>
+            We'll now look at some real code examples and try to find out if there's any string duplication going on.
+            Your task is to analyze 2 GitHub files and figure out which string literals show duplication and can be abstracted out.
+            Ignore string literals that are part of error handling/logging.
+            </p>
+            
+            <ol>
+                <li>
+                    <a href="https://github.com/tonk/ansible/blob/a78edbb45ce8944ef096719cb1927472724ba737/lib/ansible/constants.py"
+                            target="_blank">Ansible: constants.py</a>
+                </li>
+                <li>
+                    <a href="https://github.com/josegonzalez/beaver/blob/4c4277fec2f5c80d1cfe4f5791fac9ad6dd9a7be/beaver/config.py"
+                            target="_blank">Beaver: config.py</a>
+                </li>
+            </ol>
+            <hr />
+            
+            <ul class="pager">
+                <li class="previous"><a href="level-2-editorial.html">&lsaquo; Editorial</a></li>
+                <li class="next"><a href="level-3.html">Level 3 &rsaquo;</a></li>
+            </ul>
+        </div>
+        
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="javascripts/external/bootstrap.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.6/angular.min.js"></script>
+        <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?lang=java&skin=default"></script>
+    </body>
+</html>

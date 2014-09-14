@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html ng-app>
+    <head>
+        <title>Agile Design Labs: </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="stylesheets/external/bootstrap.min.css" rel="stylesheet" media="screen">
+    </head>
+    <style type="text/css">
+        .helper-tip {
+            background-color: #ffff88;
+            border-bottom: 1px dotted black;
+        }
+    </style>
+    <body style="padding: 60px 0 140px 0;">
+        <div class="navbar navbar-fixed-top navbar-inverse">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="brand" href="#">Agile Design Labs</a>
+                    <ul class="nav">
+                        <li><a href="#">Sprint I</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <h3>Fundamentals - DRY: Level 4 Editorial</h3>
+            <p>
+                From the <code>WarehouseSnapshotDao</code> we already know how to get the
+                <code>WarehouseSnapshot</code> for a particular warehouse name, year and month.
+                We now need to figure out an algorithm to that will populate the <code>WarehouseReport</code> object.
+            </p>
+            <ol>
+                <li>
+                    The <code>skus</code> field is very trivial to fill directly from the snapshot.
+                </li>
+                <li>
+                    To fill the <code>units</code> field,
+                    we iterate over all <code>Sku</code> objects and add up the <code>quantity</code> for each SKU.
+                </li>
+                <li>
+                    To fill the <code>value</code> field,
+                    we again iterate over all <code>Sku</code> objects
+                    but we add up the <code>quantity</code> for each SKU multiplied by its <code>unitValue</code>
+                </li>
+                <li>
+                    To fill the <code>changeInValue</code> field,
+                    we initially compute <code>value</code> for the <code>WarehouseSnapshot</code> for the previous month.
+                    We can now simply subtract the previous month's value from the given month's value
+                    to arrive at the change in value.
+                </li>
+            </ol>
+
+            <p>
+                Before we start bothering about duplication,
+                let us naively implement our algorithm and see if it passes tests.
+                If it doesn't then we have a much bigger problem on our hands than duplication!
+                Code for the naive attempt is given below.
+                The good news is that it passes all tests &ndash;
+                so we now move onto marking out all duplication.
+            </p>
+            
+            <pre class="prettyprint lang-python">    def generateWarehouseReport(self, warehouseName, year, month):
+<span class="helper-tip" data-trigger="hover" data-content="Code snippet #1">        currentWarehouseSnapshot = self.warehouseSnapshotDao.findOne((
+                self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "name", warehouseName),
+                self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "year", year),
+                self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "month", month)))
+        if currentWarehouseSnapshot == None:
+            return None</span>
+        
+        previousMonth = month - 1
+        previousYear = year
+        if previousMonth < 0:
+            previousYear -= 1
+            previousMonth += 12
+
+<span class="helper-tip" data-trigger="hover" data-content="Duplicate of code snippet #1">        previousWarehouseSnapshot = self.warehouseSnapshotDao.findOne((
+                self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "name", warehouseName),
+                self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "year", previousYear),
+                self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "month", previousMonth)))
+        if previousWarehouseSnapshot == None:
+            return None</span>
+        
+        warehouseReport = WarehouseReport()
+        warehouseReport.skus = len(currentWarehouseSnapshot.skus)
+        
+<span class="helper-tip" data-trigger="hover" data-content="Code snippet #2">        for sku in currentWarehouseSnapshot.skus:
+            warehouseReport.units += sku.quantity</span>
+        
+<span class="helper-tip" data-trigger="hover" data-content="Duplicate of code snippet #2">        for sku in currentWarehouseSnapshot.skus:
+            warehouseReport.value += sku.quantity * sku.unitValue</span>
+        
+        previousValue = 0
+<span class="helper-tip" data-trigger="hover" data-content="Duplicate of code snippet #2">        for sku in previousWarehouseSnapshot.skus:
+            previousValue += sku.quantity * sku.unitValue</span>
+        warehouseReport.changeInValue = warehouseReport.value - previousValue
+
+        return warehouseReport</pre>
+            <hr />
+            
+            <p>
+                We first investigate code snippet #1.
+                The reason for duplication is because both snippets fetch a <code>WarehouseSnapshot</code>
+                We also then test for <code>None</code> in both cases to decide whether to return <code>None</code> or not.
+                A simple functional abstraction leads to the following code.
+            </p>
+            
+            <pre class="prettyprint lang-python">    def _getWarehouseSnapshot(self, warehouseName, year, month):
+        return self.warehouseSnapshotDao.findOne((
+                self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "name", warehouseName),
+                self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "year", year),
+                self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "month", month)))
+
+    def generateWarehouseReport(self, warehouseName, year, month):
+        previousMonth = month - 1
+        previousYear = year
+        if previousMonth < 0:
+            previousYear -= 1
+            previousMonth += 12
+        
+        currentWarehouseSnapshot = self._getWarehouseSnapshot(warehouseName,
+                year, month)
+        previousWarehouseSnapshot = self._getWarehouseSnapshot(warehouseName,
+                previousYear, previousMonth)
+        
+        if currentWarehouseSnapshot == None or previousWarehouseSnapshot == None:
+            return None
+        ...</pre>
+            <hr />
+            <p>
+                The cause for duplication of code snippet #2 is the nature of the computation involved.
+                Computing <code>units</code> and <code>value</code> both involve a nearly identical loop over all SKUs.
+                We're also computing <code>value</code> twice, leading to three instances of nearly identical code.
+                To fix this, we abstract the looping over all SKUs and
+                decide inside the loop whether we want to compute <code>units</code> or <code>value</code>
+            </p>
+            
+            <pre class="prettyprint lang-python"><span class="helper-tip" data-trigger="hover" data-content="Functions to compute units and value of a single SKU">    def _computeUnits(self, sku):
+        return sku.quantity
+    
+    def _computeValue(self, sku):
+        return sku.quantity * sku.unitValue</span>
+
+<span class="helper-tip" data-trigger="hover" data-content="Generic loop that computes 'computeFunction' for each SKU and sums it up">    def _computeReportItem(self, warehouseSnapshot, computeFunction):
+        reportItem = 0
+        for sku in warehouseSnapshot.skus:
+            reportItem += computeFunction(sku)
+        return reportItem</span>
+
+    def generateWarehouseReport(self, warehouseName, year, month):
+        ...
+
+        warehouseReport = WarehouseReport()
+        warehouseReport.skus = len(currentWarehouseSnapshot.skus)
+        warehouseReport.units = self._computeReportItem(
+                currentWarehouseSnapshot, self._computeUnits)
+        warehouseReport.value = self._computeReportItem(
+                currentWarehouseSnapshot, self._computeValue)
+        
+        previousValue = self._computeReportItem(previousWarehouseSnapshot,
+                self._computeValue)
+        warehouseReport.changeInValue = warehouseReport.value - previousValue
+        return warehouseReport</pre>
+
+            <hr />
+            <ul class="pager">
+                <li class="previous"><a href="level-4.html">&lsaquo; Level 4</a></li>
+                <li class="next"><a href="level-5.html">Level 5 &rsaquo;</a></li>
+            </ul>
+        </div>
+        
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="javascripts/external/bootstrap.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.6/angular.min.js"></script>
+        <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?lang=java&skin=default"></script>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                $(".helper-tip").popover();
+            });
+        </script>
+    </body>
+</html>

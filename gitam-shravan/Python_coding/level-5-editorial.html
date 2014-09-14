@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html ng-app>
+    <head>
+        <title>Agile Design Labs: </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="stylesheets/external/bootstrap.min.css" rel="stylesheet" media="screen">
+    </head>
+    <style type="text/css">
+        .helper-tip {
+            background-color: #ffff88;
+            border-bottom: 1px dotted black;
+        }
+    </style>
+    <body style="padding: 60px 0 140px 0;">
+        <div class="navbar navbar-fixed-top navbar-inverse">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="brand" href="#">Agile Design Labs</a>
+                    <ul class="nav">
+                        <li><a href="#">Sprint I</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <h3>Fundamentals - DRY: Level 5 Editorial</h3>
+            <p>
+                Let us first enumerate the kinds of duplication we can see.
+            </p>
+            <ul>
+                <li>
+                    Querying for <code>WarehouseSnapshot</code> objects
+                    re-uses logic to construct <code>QueryFilter</code> objects
+                </li>
+                <li>
+                    Computation of <code>previousMonth</code> and <code>previousYear</code> is repeated.
+                    We also see that this computation is only used in conjunction with querying.
+                </li>
+                <li>
+                    Computation of <code>units</code> and <code>value</code> is repeated,
+                    including an <code>if</code> condition that tests for equality of <code>skuName</code>
+                </li>
+            </ul>
+
+            <p>
+                To remove duplication in the querying,
+                we can factor out the generation of <code>QueryFilter</code> for the
+                <code>year</code> and <code>month</code> fields.
+                When we need a <code>WarehouseSnapshot</code> for a particular warehouse,
+                we can add an extra <code>QueryFilter</code> for the <code>name</code> field.
+            </p>
+            
+            <pre class="prettyprint lang-python">    def _getDateQueryFilters(self, year, month):
+        return [self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "year", year),
+                self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "month", month)]
+    
+    def _getWarehouseSnapshot(self, warehouseName, year, month):
+        queryFilters = self._getDateQueryFilters(year, month)
+        queryFilters.append(self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "name", warehouseName))
+        return self.warehouseSnapshotDao.findOne(queryFilters)
+    
+    def _getWarehouseSnapshots(self, year, month):
+        return self.warehouseSnapshotDao.find(self._getDateQueryFilters(
+                year, month))</pre>
+            
+            <hr />
+            <p>
+                We've already seen that computation of <code>previousMonth</code> and <code>previousYear</code>
+                only occurs in conjunction with construction of appropriate <code>QueryFilter</code> objects.
+                So we can shift this logic into the construction of the query filter, and introduce a new variable,
+                <code>useBooleanMonth</code> which callers can use to decide whether the <code>month</code> and possibly
+                <code>year</code> need to be decremented.
+            </p>
+            
+            <pre class="prettyprint lang-python">    def _getDateQueryFilters(self, year, month, usePreviousMonth):
+        if usePreviousMonth:
+            month -= 1;
+            if month < 0:
+                month += 12
+                year -= 1
+        ...
+</pre>
+
+            <hr />
+            <p>
+                Finally, to avoid duplication in the computation of SKU report items,
+                we enhance our <code>computeReportItem</code> method to handle filtering by <code>skuName</code>.
+            </p>
+            
+            <pre class="prettyprint lang-python">    def _computeReportItem(self, warehouseSnapshot, computeFunction,
+                           skuNameToFilter=None):
+        reportItem = 0
+        for sku in warehouseSnapshot.skus:
+            if skuNameToFilter == None or skuNameToFilter == sku.name:
+                reportItem += computeFunction(sku)
+        return reportItem
+</pre>
+
+            <hr />
+            <p>
+                With these pieces in places, we can update the public methods appropriately to make use of them.
+                You can also see the entire code below, for reference.
+            </p>
+            
+            <pre class="prettyprint lang-python">class InventoryReportManager:
+    def __init__(self, warehouseSnapshotDao):
+        self.warehouseSnapshotDao = warehouseSnapshotDao
+
+    def _getDateQueryFilters(self, year, month, usePreviousMonth):
+        if usePreviousMonth:
+            month -= 1;
+            if month < 0:
+                month += 12
+                year -= 1
+        
+        return [self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "year", year),
+                self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "month", month)]
+    
+    def _getWarehouseSnapshot(self, warehouseName, year, month,
+                              usePreviousMonth=False):
+        queryFilters = self._getDateQueryFilters(year, month, usePreviousMonth)
+        queryFilters.append(self.warehouseSnapshotDao.createEqualsQueryFilter(
+                        "name", warehouseName))
+        return self.warehouseSnapshotDao.findOne(queryFilters)
+    
+    def _getWarehouseSnapshots(self, year, month, usePreviousMonth=False):
+        return self.warehouseSnapshotDao.find(self._getDateQueryFilters(
+                year, month, usePreviousMonth))
+
+    def _computeUnits(self, sku):
+        return sku.quantity
+
+    def _computeValue(self, sku):
+        return sku.quantity * sku.unitValue
+
+    def _computeReportItem(self, warehouseSnapshot, computeFunction,
+                           skuNameToFilter=None):
+        reportItem = 0
+        for sku in warehouseSnapshot.skus:
+            if skuNameToFilter == None or skuNameToFilter == sku.name:
+                reportItem += computeFunction(sku)
+        return reportItem
+
+    def _computeReportItemForWarehouses(self, warehouseSnapshots,
+                                        computeFunction, skuNameToFilter=None):
+        reportItem = 0
+        for warehouseSnapshot in warehouseSnapshots:
+            reportItem += self._computeReportItem(warehouseSnapshot,
+                        computeFunction, skuNameToFilter)
+        return reportItem
+        
+    def generateWarehouseReport(self, warehouseName, year, month):
+        skuWarehouseReport = self.generateSkuWarehouseReport(
+                None, warehouseName, year, month)
+        if skuWarehouseReport == None:
+            return None
+        
+        currentWarehouseSnapshot = self._getWarehouseSnapshot(warehouseName,
+                year, month)
+        return WarehouseReport(len(currentWarehouseSnapshot.skus),
+                skuWarehouseReport.units, skuWarehouseReport.value,
+                skuWarehouseReport.changeInValue)
+    
+    def generateSkuReport(self, skuName, year, month):
+        currentWarehouseSnapshots = self._getWarehouseSnapshots(year, month)
+        previousWarehouseSnapshots = self._getWarehouseSnapshots(year, month, True)
+
+        skuReport = Report()
+        skuReport.units = self._computeReportItemForWarehouses(
+                currentWarehouseSnapshots, self._computeUnits, skuName)
+        skuReport.value = self._computeReportItemForWarehouses(
+                currentWarehouseSnapshots, self._computeValue, skuName)
+        previousValue = self._computeReportItemForWarehouses(
+                previousWarehouseSnapshots, self._computeValue, skuName)
+        skuReport.changeInValue= skuReport.value - previousValue
+        return skuReport
+        
+    def generateSkuWarehouseReport(self, skuName, warehouseName, year, month):
+        currentWarehouseSnapshot = self._getWarehouseSnapshot(warehouseName,
+                year, month)
+        previousWarehouseSnapshot = self._getWarehouseSnapshot(warehouseName,
+                year, month, True)
+
+        if currentWarehouseSnapshot == None or previousWarehouseSnapshot == None:
+            return None
+
+        skuWarehouseReport = Report()
+        skuWarehouseReport.units = self._computeReportItem(
+                currentWarehouseSnapshot, self._computeUnits, skuName)
+        skuWarehouseReport.value = self._computeReportItem(
+                currentWarehouseSnapshot, self._computeValue, skuName)
+        
+        previousValue = self._computeReportItem(previousWarehouseSnapshot,
+                self._computeValue, skuName)
+        skuWarehouseReport.changeInValue = skuWarehouseReport.value - previousValue
+        return skuWarehouseReport</pre> 
+            
+            <hr />
+            <ul class="pager">
+                <li class="previous"><a href="level-5.html">&lsaquo; Level 5</a></li>
+                <li class="next"><a href="github-analysis-2.html">GitHub Analysis 2 &rsaquo;</a></li>
+            </ul>
+        </div>
+        
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="javascripts/external/bootstrap.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.6/angular.min.js"></script>
+        <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?lang=python&skin=default"></script>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                $(".helper-tip").popover();
+            });
+        </script>
+    </body>
+</html>

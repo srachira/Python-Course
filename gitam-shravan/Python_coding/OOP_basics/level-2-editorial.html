@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html ng-app>
+    <head>
+        <title>Agile Design Labs: </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="stylesheets/external/bootstrap.min.css" rel="stylesheet" media="screen">
+    </head>
+    <style type="text/css">
+        .helper-tip {
+            background-color: #ffff88;
+            border-bottom: 1px dotted black;
+        }
+    </style>
+    <body style="padding: 60px 0 140px 0;">
+        <div class="navbar navbar-fixed-top navbar-inverse">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="brand" href="#">Agile Design Labs</a>
+                    <ul class="nav">
+                        <li><a href="#">Sprint I</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <h3>OOP - Abstracting & Naming Concepts: Level 2 Editorial</h3>
+            <p>
+	            Two new concepts are introduced.
+	            <ul>
+	                <li>Value Added Services</li>
+	                <li>Data Plans</li>
+	            </ul>
+	            You are expected to modify the existing system for these new requirements. Now there are a couple of choices: you can 
+	            make VAS characteristics part of Plan, can make a separate class for VAS. Similarly, you can make seperate class for
+	            data plans, or include it in the existing Plan class, or just maintain the information in User class itself.
+	        </p>
+	        <p>    
+	            A good pointer is: <b>Try to model the problem well</b>. If you can identify the inherent structures in the problem, it becomes easy.
+	            For example, in this case, as per problem statement data rates are part of Plan along with call rates and SMS rates.
+	            So, we include <i>dataRatePer10KB</i> field in the Plan class.
+	        </p>    
+             <pre class="prettyprint lang-python">class Plan:
+    
+    def __init__(self, localCallRatePerMinute, stdCallRatePerMinute,
+            localSMSRate, stdSMSRate, dataRatePer10KB):
+        self.localCallRatePerMinute = localCallRatePerMinute
+        self.stdCallRatePerMinute = stdCallRatePerMinute
+        self.localSMSRate = localSMSRate
+        self.stdSMSRate = stdSMSRate
+        <span class="helper-tip">self.dataRatePer10KB = dataRatePer10KB</span></pre>
+            <p>
+            Similarly, value added services should be abstracted as a class. VAS is a different concept from a regular plan, so
+            the list of VAS can be maintained in the User class itself.
+            </p>
+            <pre class="prettyprint lang-python">class TelecomUser:
+    
+    def __init__(self, userName, msisdn, initialBalance, circle):
+        self.userName = userName
+        self.msisdn = msisdn
+        self.balance = initialBalance
+        self.circle = circle
+        <span class="helper-tip">self.valueAddedServices = {}
+        
+        def subscribeVAS(self, valueAddedService):
+	        if self.balance < valueAddedService.subscriptionCharges:
+	            return False
+	        else:
+	            if valueAddedService not in self.valueAddedServices:
+	                self.valueAddedServices.add(valueAddedService)
+	                self.balance -= valueAddedService.subscriptionCharges
+	            return True
+        </span></pre>
+
+        <p>
+        A list of VAS services defined/added in the system can be kept in TelecomServiceProvider class:
+        </p>
+        <pre class="prettyprint lang-python">class TelecomServiceProvider():
+    
+    userRegister = {}
+    <span class="helper-tip">vasRegister = {}</span>
+    
+    <span class="helper-tip">def addVAS(self, vasName, validfrom, validTill, subsciptionCharges):
+        vas = ValueAddedService(vasName, validfrom, validTill, subsciptionCharges)
+        self.vasRegister[vasName] = vas</span></pre>
+        
+        
+            <ul class="pager">
+                <li class="previous"><a href="level-2.html">&lsaquo; Previous (Level 2)</a></li>
+                <li class="next"><a href="level-3.html">Next (Level 3) &rsaquo;</a></li>
+            </ul>
+        </div>
+        
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="javascripts/external/bootstrap.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.6/angular.min.js"></script>
+        <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?lang=python&skin=default"></script>
+    </body>
+</html>

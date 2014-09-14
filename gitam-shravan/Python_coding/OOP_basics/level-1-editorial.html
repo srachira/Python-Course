@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html ng-app>
+    <head>
+        <title>Agile Design Labs: </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="stylesheets/external/bootstrap.min.css" rel="stylesheet" media="screen">
+    </head>
+    <style type="text/css">
+        .helper-tip {
+            background-color: #ffff88;
+            border-bottom: 1px dotted black;
+        }
+    </style>
+    <body style="padding: 60px 0 140px 0;">
+        <div class="navbar navbar-fixed-top navbar-inverse">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="brand" href="#">Agile Design Labs</a>
+                    <ul class="nav">
+                        <li><a href="#">Sprint I</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <h3>OOP - Abstracting & Naming Concepts: Level 1 Editorial</h3>
+            <p>
+                Being a good developer is essentially two parts:
+	            <ul>
+	                <li>Problem solving skills</li>
+	                <li>Coding skill</li>
+	            </ul>
+	            How do you approach a large and complex problem?
+            </p>
+            <img src="Break_it_down.jpg" title="Break it down"/>
+            <p>
+	            </br>
+	            <ul>
+	                <li>A part of problem solving skills is how you break down a problem. A problem that is large 
+	                   and complex at first, can be broken down into small manageable chunks.</li>
+	                <li>To break down a problem, identify small parts which can be solved independently from others.
+	                    Identify implicit concepts in the problem(could be generic or very domain-specific). Give example:</br>
+						Hint: Look for nouns in the problem statement</br>
+						Some of them will be good cases for enums</br></li>
+					<li>Naming: What's in a name- Everything! Good naming is an indicator, that you have understood and broken down the problem well. 
+					    Name should be meaningful and should abstract the concept you are trying to describe. The naming should 
+					    trickle down to your code as well, e.g., classes, methods, variables, namespaces etc.</li>	
+	            </ul>
+            </p>
+            
+            </br>
+            
+            <p>
+	            Let’s look at the problem at hand. A good way of breaking down the problem can be as follows:</br>
+	            <ol>
+		            <li>Identify the concepts (Circle, Plan, User, balance, Local/STD, Recharge)</li>
+		            <li>Identify the objects
+			            <ul>
+			               <li>Plan (call rates, sms rates)
+				               <ul>
+				                  <li>calculateCallExpense</li>
+				                  <li>calculateSMSExpense</li>
+				               </ul>
+				           </li>
+				           <li>User (name, msisdn, Plan, balance, Circle)
+		                       <ul>
+		                          <li>makeCall</li>
+		                          <li>sendSMS</li>
+		                          <li>recharge</li>
+		                       </ul>
+		                   </li>
+		                   <li>CircleEnum</li>
+		                   <li>DistanceTypeEnum</li>
+		                   <li>TelecomServiceProvider(List&lt;User&gt;)</li>
+		                       <ul><li>Interface methods</li></ul>                        
+			            </ul>
+			         </li>
+			         <li>
+			             Write skeleton for all classes (instance variables, public methods). The code will look something
+			             like as follows:</br>
+			             <pre class="prettyprint lang-python">class TelecomUser:
+    
+    def __init__(self, userName, msisdn, initialBalance, circle):
+        self.userName = userName
+        self.msisdn = msisdn
+        self.balance = initialBalance
+        self.circle = circle
+    
+    def getMsisdn(self):
+    
+    def getUsername(self):
+    
+    def getBalance(self):
+    
+    def setPlan(self, plan):
+
+    def updateBalanceForVoiceCall(self, durationInSecs, destinationCircle):
+    
+    def updateBalanceForSMS(self, destinationCircle):
+    
+    def updateBalance(self, rechargeAmount):
+
+    def __getDistanceType(self, destinationCircle):
+</pre>
+                            			         
+			         </li>
+			         <li>Fill out the skeleton. Add required getter and setter methods.</br>
+			             <pre class="prettyprint lang-python">class TelecomUser:
+    
+    def __init__(self, userName, msisdn, initialBalance, circle):
+        self.userName = userName
+        self.msisdn = msisdn
+        self.balance = initialBalance
+        self.circle = circle
+    
+    def getMsisdn(self):
+        return self.msisdn
+    
+    def getUsername(self):
+        return self.userName
+    
+    def getBalance(self):
+        return self.balance
+    
+    def setPlan(self, plan):
+        self.plan = plan
+
+    def updateBalanceForVoiceCall(self, durationInSecs, destinationCircle):
+        self.balance -= self.plan.calculateCallCost(durationInSecs, self.__getDistanceType(destinationCircle))
+        return self.balance
+    
+    def updateBalanceForSMS(self, destinationCircle):
+        self.balance -= self.plan.calculateSMSCost(self.__getDistanceType(destinationCircle))
+        return self.balance;
+    
+    def updateBalance(self, rechargeAmount):
+        self.balance += rechargeAmount
+
+    def __getDistanceType(self, destinationCircle):
+        return DistanceType().LOCAL if destinationCircle == self.circle else DistanceType().STD
+</pre> 
+			         </li> 
+            </p>
+            
+                       
+            
+            <hr />
+
+            <ul class="pager">
+                <li class="previous"><a href="level-1.html">&lsaquo; Previous (Level 1)</a></li>
+                <li class="next"><a href="level-2.html">Next (Level 2) &rsaquo;</a></li>
+            </ul>
+        </div>
+        
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="javascripts/external/bootstrap.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.6/angular.min.js"></script>
+        <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?lang=python&skin=default"></script>
+    </body>
+</html>

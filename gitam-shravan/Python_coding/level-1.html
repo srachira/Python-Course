@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html ng-app>
+    <head>
+        <title>Agile Design Labs: </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="stylesheets/external/bootstrap.min.css" rel="stylesheet" media="screen">
+    </head>
+    <style type="text/css">
+        .helper-tip {
+            background-color: #ffff88;
+            border-bottom: 1px dotted black;
+        }
+    </style>
+    <body style="padding: 60px 0 140px 0;">
+        <div class="navbar navbar-fixed-top navbar-inverse">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="brand" href="#">Agile Design Labs</a>
+                    <ul class="nav">
+                        <li><a href="#">Sprint I</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <h3>Fundamentals - DRY: Level 1</h3>
+            <p>
+            Welcome to the DRY boot camp. You're on your way to understanding how we copy and paste code,
+            the way in which it affects maintenance and ways to refactor duplication.
+            At the end of this boot camp, you will have built
+            <a href="http://localhost:9000/">an inventory reporting dashboard</a>
+            with zero duplicate code! 
+            </p>
+            
+            <p>
+            We'll start with a very small part of the reporting dashboard &ndash;
+            showing the title for warehouse reports. If we have a warehouse named <code>Agra</code>,
+            the formatted title would be <code>&lt;h3>Warehouse: Agra&lt;/h3></code>
+            You have some stub code to start with. Complete the code, verify it against the tests
+            and then upload it to move onto your next task.
+            </p>
+            <hr />
+            
+            <p><strong>Stub code</strong></p>
+            <pre class="prettyprint lang-python">class FormattedTextGenerator:
+    def formatWarehouseReportTitle(self, warehouseName):</pre>
+            
+            <p>
+            
+            <ul class="pager">
+                <li class="previous"><a href="overview.html">&lsaquo; Overview</a></li>
+                <li class="next"><a href="level-1-editorial.html">Editorial &rsaquo;</a></li>
+            </ul>
+        </div>
+        
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="javascripts/external/bootstrap.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.6/angular.min.js"></script>
+        <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?lang=python&skin=default"></script>
+        <script type="text/javascript">
+            function TimerController($scope, $timeout) {
+                $scope.minutes = 10;
+                $scope.seconds = 0;
+                $scope.formatToTwoDigits = function(number) {
+                    return number < 10 ? "0" + number: number;
+                }
+                var update = function() {
+                    $scope.seconds--;
+                    if ($scope.seconds < 0) {
+                        $scope.seconds += 60;
+                        $scope.minutes--;
+                    }
+                    if ($scope.minutes > 0 || $scope.seconds > 0) {
+                        $timeout(update, 1000);
+                    }
+                }
+                $timeout(update, 1000);
+            }
+        </script>
+    </body>
+</html>

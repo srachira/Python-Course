@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html ng-app>
+    <head>
+        <title>Agile Design Labs: </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="stylesheets/external/bootstrap.min.css" rel="stylesheet" media="screen">
+    </head>
+    <style type="text/css">
+        .helper-tip {
+            background-color: #ffff88;
+            border-bottom: 1px dotted black;
+        }
+    </style>
+    <body style="padding: 60px 0 140px 0;">
+        <div class="navbar navbar-fixed-top navbar-inverse">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="brand" href="#">Agile Design Labs</a>
+                    <ul class="nav">
+                        <li><a href="#">Sprint I</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <h3>Fundamentals - DRY: Level 2 Editorial</h3>
+            <p>
+            The presence of the SKU title and SKU-warehouse title introduces multiple duplications.
+            </p>
+            <ul>
+                <li>
+                The literals <code>SKU</code> and <code>Warehouse</code> occur multiple times.
+                This one is easy to fix &ndash; we can simply abstract them out as constants.
+                </li>
+                <li>
+                The title is constructed in a similar manner for all three reports.
+                We can see that all of the titles have a structural similarity.
+                There is always some content enclosed between <code>&lt;h3></code> and <code>&lt;/h3></code>.
+                </li>
+                <li>
+                Within the title itself, the content always has one or more <code>:</code> separated parts,
+                like <code>SKU: SomeSku</code> and <code>Warehouse: SomeWarehouse</code>
+                </li>
+            </ul>
+
+            <p>
+            Now that we've seen all the places where duplication takes place
+            as well as the underlying cause of duplication,
+            we can abstract the commonality out.
+            It takes a bit of discipline to complete the refactoring,
+            but once it's done we have code that lends itself very well to maintenance.
+            We'll soon see how this is extremely useful!
+            </p>
+            
+            <pre class="prettyprint lang-python">class FormattedTextGenerator:
+    TITLE_TAG_FORMAT = "<{0}h3>"
+    TITLE_OPEN_TAG = TITLE_TAG_FORMAT.format("")
+    TITLE_CLOSE_TAG = TITLE_TAG_FORMAT.format("/")
+    
+<span class="helper-tip" data-trigger="hover" data-content="Abstracting the literals">    WAREHOUSE_CATEGORY = "Warehouse"
+    SKU_CATEGORY = "SKU"</span>
+    
+<span class="helper-tip" data-trigger="hover" data-content="Construct the entire title, between h3 tags">    def _generateReportTitle(self, titleContents):
+        return self.TITLE_OPEN_TAG + titleContents + self.TITLE_CLOSE_TAG</span>
+    
+    def _generateCategoryReportTitle(self, category, name):
+        return self._generateReportTitle(self._formatCategoryAndName(category, name))
+    
+<span class="helper-tip" data-trigger="hover" data-content="Generate a colon-separated part of the title">    def _formatCategoryAndName(self, category, name):
+        return category + ": " + name;</span>
+    
+    def formatWarehouseReportTitle(self, warehouseName):
+        return self._generateCategoryReportTitle(self.WAREHOUSE_CATEGORY, warehouseName)
+    
+    def formatSkuReportTitle(self, skuName):
+        return self._generateCategoryReportTitle(self.SKU_CATEGORY, skuName)
+    
+    def formatSkuWarehouseReportTitle(self, skuName, warehouseName):
+        return self._generateReportTitle(
+                self._formatCategoryAndName(self.SKU_CATEGORY, skuName) +
+                ", " +
+                self._formatCategoryAndName(self.WAREHOUSE_CATEGORY, warehouseName))</pre>
+            <hr />
+
+            <ul class="pager">
+                <li class="previous"><a href="level-2.html">&lsaquo; Level 2</a></li>
+                <li class="next"><a href="github-analysis.html">GitHub Analysis &rsaquo;</a></li>
+            </ul>
+        </div>
+        
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="javascripts/external/bootstrap.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.6/angular.min.js"></script>
+        <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?lang=java&skin=default"></script>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                $(".helper-tip").popover();
+            });
+        </script>
+    </body>
+</html>
